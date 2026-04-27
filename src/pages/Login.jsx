@@ -32,11 +32,11 @@ const Login = () => {
         <div className="visual-content">
           <div className="logo-section">
              <div className="logo-symbol">G</div>
-             <h1 className="outfit">Sovereign Gallery</h1>
+             <h1 className="outfit">Galeria Soberana</h1>
           </div>
-          <p>Architecting Financial Precision</p>
+          <p>Arquitetando Precisão Financeira</p>
           <div className="visual-footer">
-            <p>© 2026 Deepmind Financial Systems. All rights reserved.</p>
+            <p>© 2026 Sistemas Financeiros Deepmind. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>

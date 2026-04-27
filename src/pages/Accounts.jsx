@@ -156,7 +156,7 @@ const AccountCard = ({ name, bank, balance, onClick, onDelete }) => (
     
     <div className="card-bottom">
       <div className="balance-info">
-        <p className="label">AVAILABLE BALANCE</p>
+        <p className="label">SALDO DISPONÍVEL</p>
         <p className="value outfit">R${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
       </div>
       <div className="statement-link">
@@ -195,7 +195,7 @@ const Accounts = () => {
       <div className="accounts-page">
         <div className="loading-container">
           <div className="loader"></div>
-          <p>Sincronizando com Sovereign Trust...</p>
+          <p>Sincronizando com o Trust Soberano...</p>
         </div>
       </div>
     );
@@ -205,14 +205,14 @@ const Accounts = () => {
     <div className="accounts-page">
       <header className="accounts-header">
         <div className="header-text">
-          <h1 className="outfit">Accounts & Cards</h1>
-          <p>A curated overview of your architectural liquidity. Manage connected institutions and credit facilities from one unified gallery.</p>
+          <h1 className="outfit">Contas & Cartões</h1>
+          <p>Uma visão curada da sua liquidez arquitetural. Gerencie instituições conectadas e facilidades de crédito a partir de uma galeria unificada.</p>
         </div>
         <div className="mini-hero-card">
            <div className="hero-content">
-             <p className="label">TOTAL LIQUIDITY</p>
+             <p className="label">LIQUIDEZ TOTAL</p>
              <h2 className="value outfit">R${totalLiquidity.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h2>
-             <p className="trend positive">Current balance</p>
+             <p className="trend positive">Saldo atual</p>
            </div>
            <div className="hero-icon">
               <Wallet size={32} />
@@ -223,7 +223,7 @@ const Accounts = () => {
 
       <section className="institutions-section">
         <div className="section-header">
-          <h2>Connected Institutions</h2>
+          <h2>Instituições Conectadas</h2>
           <button className="add-btn" onClick={() => setIsModalOpen(true)}>
              <Plus size={16} />
              <span>Nova Conta Corrente</span>
@@ -243,13 +243,13 @@ const Accounts = () => {
               />
             ))
           ) : (
-            <div className="empty-state">No matching accounts found.</div>
+            <div className="empty-state">Nenhuma conta correspondente encontrada.</div>
           )}
           <button className="add-account-card" onClick={() => setIsModalOpen(true)}>
             <div className="plus-box">
               <Plus size={24} />
             </div>
-            <p>Add New Account</p>
+            <p>Adicionar Nova Conta</p>
           </button>
         </div>
       </section>

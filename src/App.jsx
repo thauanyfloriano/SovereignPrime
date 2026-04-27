@@ -32,11 +32,11 @@ const Sidebar = () => {
       <nav className="nav-menu">
         <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
           <LayoutDashboard size={20} />
-          <span>Dashboard</span>
+          <span>Painel Principal</span>
         </NavLink>
         <NavLink to="/accounts" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
           <Landmark size={20} />
-          <span>Accounts</span>
+          <span>Contas & Ativos</span>
         </NavLink>
       </nav>
 
@@ -49,7 +49,7 @@ const Sidebar = () => {
           <div className="avatar">{currentUser ? currentUser[0] : 'A'}</div>
           <div className="user-info">
             <p className="user-name">{currentUser || 'ABDALA'}</p>
-            <p className="user-role">Sovereign Prime</p>
+            <p className="user-role">Gestor Soberano</p>
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@ const Header = ({ onAddRecord }) => {
         <Search size={18} className="search-icon" />
         <input 
           type="text" 
-          placeholder="Search wealth, assets, or data..." 
+          placeholder="Buscar patrimônio, ativos ou dados..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -82,7 +82,7 @@ const Header = ({ onAddRecord }) => {
         </button>
         <button className="add-record-btn" onClick={onAddRecord}>
           <Plus size={18} />
-          <span>Add Record</span>
+          <span>Adicionar Lançamento</span>
         </button>
       </div>
     </header>
@@ -173,7 +173,7 @@ const AddRecordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label>{formData.type === 'transfer' ? 'Conta de Origem' : 'Conta de Origem/Destino'}</label>
+            <label>{formData.type === 'transfer' ? 'Conta de Origem' : 'Conta'}</label>
             <select 
               value={formData.accountName} 
               onChange={(e) => setFormData({...formData, accountName: e.target.value})}

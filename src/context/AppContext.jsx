@@ -30,8 +30,28 @@ export const AppProvider = ({ children }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: accountsData } = await supabase.from('accounts').select('*').order('name');
-        const { data: transactionsData } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+        const { data: accountsData } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('owner', currentUser)
+          .order('name');
+          
+        if (accountsData && accountsData.length === 0 && currentUser) {
+          // Seed default accounts for new user
+          const { data: seeded } = await supabase.from('accounts').insert([
+            { name: 'ABDALA', bank: 'Trust Soberano', balance: 0, owner: currentUser },
+            { name: 'DOAÇÃO', bank: 'Social Soberano', balance: 0, owner: currentUser }
+          ]).select();
+          if (seeded) setAccounts(seeded);
+        } else if (accountsData) {
+          setAccounts(accountsData);
+        }
+        
+        const { data: transactionsData } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('owner', currentUser)
+          .order('date', { ascending: false });
         
         if (accountsData) setAccounts(accountsData);
         if (transactionsData) {
@@ -48,10 +68,10 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    if (isAuthenticated) {
+    if (isAuthenticated && currentUser) {
       fetchData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentUser]);
 
   const login = (username, password) => {
     if (username === 'ABDALA' && password === 'Abdala@123') {
@@ -70,12 +90,14 @@ export const AppProvider = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setAccounts([]);
+    setTransactions([]);
   };
 
   const addAccount = async (account) => {
     const { data, error } = await supabase
       .from('accounts')
-      .insert([{ ...account, balance: parseFloat(account.balance) || 0 }])
+      .insert([{ ...account, balance: parseFloat(account.balance) || 0, owner: currentUser }])
       .select();
 
     if (data) {
@@ -128,7 +150,7 @@ export const AppProvider = ({ children }) => {
           date
         });
         
-        await supabase.rpc('increment_balance', { account_name: originAccount, amount: -amount });
+        await supabase.rpc('increment_balance', { account_name: originAccount, amount: -amount, owner_name: currentUser });
       }
 
       // Shared Tithe Accounting for both Income and Transfer
@@ -139,7 +161,8 @@ export const AppProvider = ({ children }) => {
         account_name: 'ABDALA',
         category: 'Doação',
         description: `10% Doação (automático de: ${transaction.description || 'Entrada'})`,
-        date
+        date,
+        owner: currentUser
       });
 
       // 2. Income Record in DOAÇÃO
@@ -149,13 +172,14 @@ export const AppProvider = ({ children }) => {
         account_name: 'DOAÇÃO',
         category: 'Doação',
         description: `Recebimento 10% de: ABDALA`,
-        date
+        date,
+        owner: currentUser
       });
 
       // Update Balances
       // For both Income and Transfer into ABDALA, the account gains the Net Amount (Total - 10%)
-      await supabase.rpc('increment_balance', { account_name: 'ABDALA', amount: netAmount });
-      await supabase.rpc('increment_balance', { account_name: 'DOAÇÃO', amount: titheAmount });
+      await supabase.rpc('increment_balance', { account_name: 'ABDALA', amount: netAmount, owner_name: currentUser });
+      await supabase.rpc('increment_balance', { account_name: 'DOAÇÃO', amount: titheAmount, owner_name: currentUser });
 
     } else if (transaction.type === 'transfer') {
       const targetAccountName = transaction.targetAccount;
@@ -166,7 +190,8 @@ export const AppProvider = ({ children }) => {
         account_name: transaction.accountName,
         category: 'Transferência',
         description: `Transferência para ${targetAccountName}: ${transaction.description || ''}`,
-        date
+        date,
+        owner: currentUser
       });
       
       txsToInsert.push({
@@ -175,21 +200,23 @@ export const AppProvider = ({ children }) => {
         account_name: targetAccountName,
         category: 'Transferência',
         description: `Transferência de ${transaction.accountName}: ${transaction.description || ''}`,
-        date
+        date,
+        owner: currentUser
       });
 
-      await supabase.rpc('increment_balance', { account_name: transaction.accountName, amount: -amount });
-      await supabase.rpc('increment_balance', { account_name: targetAccountName, amount: amount });
+      await supabase.rpc('increment_balance', { account_name: transaction.accountName, amount: -amount, owner_name: currentUser });
+      await supabase.rpc('increment_balance', { account_name: targetAccountName, amount: amount, owner_name: currentUser });
 
     } else {
       txsToInsert.push({
         ...transaction,
         amount: amount,
-        date
+        date,
+        owner: currentUser
       });
 
       const balanceChange = transaction.type === 'income' ? amount : -amount;
-      await supabase.rpc('increment_balance', { account_name: transaction.accountName, amount: balanceChange });
+      await supabase.rpc('increment_balance', { account_name: transaction.accountName, amount: balanceChange, owner_name: currentUser });
     }
 
     const formattedTxs = txsToInsert.map(tx => ({
@@ -198,7 +225,8 @@ export const AppProvider = ({ children }) => {
       account_name: tx.accountName || tx.account_name,
       category: tx.category,
       description: tx.description,
-      date: tx.date
+      date: tx.date,
+      owner: tx.owner || currentUser
     }));
 
     const { data: newTxs } = await supabase.from('transactions').insert(formattedTxs).select();
@@ -226,7 +254,7 @@ export const AppProvider = ({ children }) => {
     // If it's a transfer, we might want to find and delete the other side too
     // For now, let's at least ensure the balance of the current account is reverted
     const balanceChange = txToDelete.type === 'income' ? -amount : amount;
-    await supabase.rpc('increment_balance', { account_name: txToDelete.account_name, amount: balanceChange });
+    await supabase.rpc('increment_balance', { account_name: txToDelete.account_name, amount: balanceChange, owner_name: currentUser });
     
     // Handle linked transfer deletion if description contains the pattern
     if (txToDelete.category === 'Transferência') {
@@ -236,12 +264,13 @@ export const AppProvider = ({ children }) => {
         parseFloat(tx.amount) === amount && 
         tx.type !== txToDelete.type &&
         tx.category === 'Transferência' &&
-        Math.abs(new Date(tx.date) - new Date(txToDelete.date)) < 10000 // within 10 seconds
+        Math.abs(new Date(tx.date) - new Date(txToDelete.date)) < 10000 && // within 10 seconds
+        tx.owner === currentUser
       );
 
       if (otherSide) {
         const otherBalanceChange = otherSide.type === 'income' ? -amount : amount;
-        await supabase.rpc('increment_balance', { account_name: otherSide.account_name, amount: otherBalanceChange });
+        await supabase.rpc('increment_balance', { account_name: otherSide.account_name, amount: otherBalanceChange, owner_name: currentUser });
         await supabase.from('transactions').delete().eq('id', otherSide.id);
       }
     }

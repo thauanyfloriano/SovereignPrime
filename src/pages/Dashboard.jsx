@@ -51,16 +51,16 @@ const Dashboard = () => {
       <div className="dashboard-grid">
         <div className="loading-container">
           <div className="loader"></div>
-          <p>Lendo dados do Sovereign Ledger...</p>
+          <p>Lendo dados do Livro Soberano...</p>
         </div>
       </div>
     );
   }
 
   const allocationData = [
-    { name: 'Business Operations', value: accounts.filter(a => a.name.includes('Business')).length || 1, color: '#021d49' },
-    { name: 'Lifestyle & Travel', value: 1, color: '#10b981' },
-    { name: 'Fixed Assets', value: 1, color: '#cbd5e1' },
+    { name: 'Operações de Negócio', value: accounts.filter(a => a.name.includes('Business')).length || 1, color: '#021d49' },
+    { name: 'Estilo de Vida & Viagem', value: 1, color: '#10b981' },
+    { name: 'Ativos Fixos', value: 1, color: '#cbd5e1' },
   ];
 
   return (
@@ -69,20 +69,20 @@ const Dashboard = () => {
       <section className="hero-section">
         <div className="navy-hero">
           <div className="hero-header">
-            <p className="label">TOTAL LIQUIDITY</p>
+            <p className="label">LIQUIDEZ TOTAL</p>
             <div className="user-greeting">
-              <span className="greeting-text">Welcome,</span>
+              <span className="greeting-text">Bem-vindo,</span>
               <span className="user-name">{currentUser}</span>
             </div>
           </div>
           <h1 className="amount outfit">{formatCurrency(totalLiquidity)}</h1>
           <div className="hero-stats">
             <div className="stat-pill">
-              <span className="pill-label">MONTHLY YIELD</span>
+              <span className="pill-label">RENDIMENTO MENSAL</span>
               <span className="pill-value">{(totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1) : 0)}%</span>
             </div>
             <div className="stat-pill">
-              <span className="pill-label">ACTIVE ASSETS</span>
+              <span className="pill-label">ATIVOS ATIVOS</span>
               <span className="pill-value">{accounts.length}</span>
             </div>
           </div>
@@ -90,13 +90,13 @@ const Dashboard = () => {
         
         <div className="premium-card health-card">
           <div className="card-header">
-            <h3>Portfolio Health</h3>
-            <p className="subtitle">Your diverse portfolio performance based on current liquidity and transactions.</p>
+            <h3>Saúde do Portfólio</h3>
+            <p className="subtitle">Desempenho do seu portfólio baseado na liquidez atual e transações.</p>
           </div>
           <div className="health-metrics">
             <div className="risk-label">
-              <span>RISK FACTOR</span>
-              <span className="risk-value low">{totalLiquidity > totalExpenses ? 'LOW' : 'MEDIUM'}</span>
+              <span>FATOR DE RISCO</span>
+              <span className="risk-value low">{totalLiquidity > totalExpenses ? 'BAIXO' : 'MÉDIO'}</span>
             </div>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: totalLiquidity > 0 ? '60%' : '0%' }}></div>
@@ -112,9 +112,9 @@ const Dashboard = () => {
             <TrendingUp size={18} />
           </div>
           <div className="stat-content">
-            <p className="label">INCOME</p>
+            <p className="label">ENTRADAS</p>
             <h3>{formatCurrency(totalIncome)}</h3>
-            <p className="trend positive">Lifetime earnings</p>
+            <p className="trend positive">Ganhos totais</p>
           </div>
         </div>
 
@@ -123,9 +123,9 @@ const Dashboard = () => {
             <TrendingDown size={18} />
           </div>
           <div className="stat-content">
-            <p className="label">EXPENSES</p>
+            <p className="label">SAÍDAS</p>
             <h3>{formatCurrency(totalExpenses)}</h3>
-            <p className="trend neutral">Lifetime spend</p>
+            <p className="trend neutral">Gastos totais</p>
           </div>
         </div>
 
@@ -136,13 +136,13 @@ const Dashboard = () => {
           <div className="stat-content">
             <p className="label">TOTAL A RECEBER</p>
             <h3>{formatCurrency(totalReceivable)}</h3>
-            <p className="trend highlight">Client capital</p>
+            <p className="trend highlight">Capital de terceiros</p>
           </div>
         </div>
 
         <div className="premium-card chart-stat">
           <div className="card-header-compact">
-            <p className="label">SPENDING VELOCITY</p>
+            <p className="label">VELOCIDADE DE GASTOS</p>
             <div className="dots">
                <span className="dot teal"></span>
                <span className="dot navy"></span>
@@ -162,8 +162,8 @@ const Dashboard = () => {
       <section className="main-grid">
         <div className="premium-card transactions-card">
           <div className="card-header-between">
-            <h2>Recent Transactions</h2>
-            <button className="link-btn">VIEW LEDGER</button>
+            <h2>Transações Recentes</h2>
+            <button className="link-btn">VER LIVRO CAIXA</button>
           </div>
           <div className="transaction-list">
             {transactions.length > 0 ? (
@@ -173,28 +173,28 @@ const Dashboard = () => {
                   icon={tx.type === 'income' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
                   name={tx.description || tx.accountName}
                   account={tx.accountName}
-                  category={tx.category || 'Uncategorized'}
+                  category={tx.category || 'Sem Categoria'}
                   amount={`${tx.type === 'income' ? '+' : '-'}${formatCurrency(parseFloat(tx.amount)).replace('-', '')}`}
                   date={new Date(tx.date).toLocaleDateString('pt-BR')}
                   positive={tx.type === 'income'}
                 />
               ))
             ) : (
-              <div className="empty-state">No recent activity detected.</div>
+              <div className="empty-state">Nenhuma atividade recente detectada.</div>
             )}
           </div>
         </div>
 
         <div className="premium-card allocation-card">
           <div className="card-header-between">
-            <h2>Allocation</h2>
+            <h2>Alocação</h2>
           </div>
           <div className="allocation-content">
             <div className="donut-wrapper">
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
-                    data={accounts.length > 0 ? accounts.map(a => ({ name: a.name, value: a.balance })) : [{name: 'Empty', value: 1}]}
+                    data={accounts.length > 0 ? accounts.map(a => ({ name: a.name, value: a.balance })) : [{name: 'Vazio', value: 1}]}
                     cx="50%"
                     cy="50%"
                     innerRadius={65}
@@ -214,7 +214,7 @@ const Dashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="donut-center">
-                <p className="label">ASSETS</p>
+                <p className="label">ATIVOS</p>
                 <p className="value outfit">{accounts.length}</p>
               </div>
             </div>
