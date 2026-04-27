@@ -2,12 +2,8 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   History, 
-  ArrowRight,
-  Landmark,
   Building2,
   Wallet,
-  MoreHorizontal,
-  ChevronRight,
   X,
   ArrowUpRight,
   ArrowDownRight,
@@ -70,35 +66,56 @@ const StatementModal = ({ account, transactions, onClose, onOpenConfirm }) => {
         </div>
         
         <div className="statement-summary">
-          <p className="label">SALDO TOTAL DA CONTA</p>
-          <h3 className="outfit">R${account.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          <div className="summary-item">
+            <p className="label">SALDO ATUAL DA CONTA</p>
+            <h3 className="outfit">R${account.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          </div>
         </div>
 
-        <div className="statement-list">
+        <div className="statement-container">
           <p className="section-label">Detalhamento de Lançamentos</p>
           {transactionsWithBalance.length > 0 ? (
-            transactionsWithBalance.map(tx => (
-              <div key={tx.id} className="statement-item">
-                <div className={`tx-indicator ${tx.type}`}>
-                   {tx.type === 'income' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                </div>
-                <div className="tx-details">
-                  <div className="tx-row-top">
-                    <p className="description">{tx.description || 'Lançamento sem descrição'}</p>
-                    <span className="tx-tag">{tx.category || 'Geral'}</span>
-                  </div>
-                  <p className="date">{new Date(tx.date).toLocaleDateString('pt-BR')} • Saldo após: R${tx.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-                <div className="tx-right">
-                  <div className={`tx-amount outfit ${tx.type}`}>
-                    {tx.type === 'income' ? '+' : '-'}R${parseFloat(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <button className="delete-btn-sm" onClick={() => onOpenConfirm(tx.id)}>
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              </div>
-            ))
+            <div className="table-wrapper">
+              <table className="ledger-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th className="text-right">Valor</th>
+                    <th className="text-right">Saldo</th>
+                    <th className="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactionsWithBalance.map(tx => (
+                    <tr key={tx.id} className="ledger-row">
+                      <td className="date-cell">{new Date(tx.date).toLocaleDateString('pt-BR')}</td>
+                      <td className="desc-cell">
+                        <div className="desc-content">
+                          <span className={`indicator-dot ${tx.type}`}></span>
+                          {tx.description || 'Lançamento sem descrição'}
+                        </div>
+                      </td>
+                      <td className="cat-cell">
+                        <span className="cat-tag">{tx.category || 'Geral'}</span>
+                      </td>
+                      <td className={`amount-cell text-right ${tx.type}`}>
+                        {tx.type === 'income' ? '+' : '-'} R$ {parseFloat(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="balance-cell text-right outfit">
+                        R$ {tx.currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="actions-cell text-center">
+                        <button className="delete-tx-btn" onClick={() => onOpenConfirm(tx.id)}>
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="empty-state">Nenhuma movimentação encontrada para esta conta.</div>
           )}
@@ -108,35 +125,6 @@ const StatementModal = ({ account, transactions, onClose, onOpenConfirm }) => {
   );
 };
 
-const CreditCard = ({ type, brand, lastFour, balance, limit, color }) => (
-  <div className={`credit-card ${color}`}>
-    <div className="card-header">
-      <div className="card-type">
-        <p className="type-label">{type}</p>
-        <p className="brand-name">{brand}</p>
-      </div>
-      <div className="chip"></div>
-    </div>
-    
-    <div className="card-number">
-      <span>• • • •</span>
-      <span>• • • •</span>
-      <span>• • • •</span>
-      <span>{lastFour}</span>
-    </div>
-    
-    <div className="card-details">
-      <div className="detail">
-        <p className="label">BALANCE</p>
-        <p className="value outfit">R${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-      </div>
-      <div className="detail">
-        <p className="label">LIMIT</p>
-        <p className="value light outfit">R${limit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-      </div>
-    </div>
-  </div>
-);
 
 const AccountCard = ({ name, bank, balance, onClick, onDelete }) => (
   <div className="account-premium-card" onClick={onClick}>
@@ -232,36 +220,6 @@ const Accounts = () => {
         </div>
       </header>
 
-      <section className="cards-section">
-        <div className="section-header">
-          <h2>Active Credit Lines</h2>
-          <button className="add-btn">
-             <Plus size={16} />
-             <span>New Facility</span>
-          </button>
-        </div>
-        
-        <div className="cards-grid">
-          {[
-            { type: "INFINITE PRIVILEGE", brand: "Sovereign Prime", lastFour: "0000", balance: 0, limit: 0, color: "navy" },
-            { type: "BUSINESS BLACK", brand: "Founders Corporate", lastFour: "0000", balance: 0, limit: 0, color: "dark" }
-          ].filter(card => 
-            card.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            card.type.toLowerCase().includes(searchQuery.toLowerCase())
-          ).map((card, idx) => (
-            <CreditCard 
-              key={idx}
-              {...card}
-            />
-          ))}
-          <button className="add-card-placeholder">
-            <div className="plus-box">
-              <Plus size={24} />
-            </div>
-            <p>Link New Card</p>
-          </button>
-        </div>
-      </section>
 
       <section className="institutions-section">
         <div className="section-header">

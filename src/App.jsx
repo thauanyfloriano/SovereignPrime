@@ -95,8 +95,10 @@ const AddRecordModal = ({ isOpen, onClose }) => {
     type: 'expense',
     amount: '',
     accountName: '',
+    targetAccount: '',
     category: 'Geral',
-    description: ''
+    description: '',
+    date: new Date().toISOString().split('T')[0]
   });
 
   if (!isOpen) return null;
@@ -107,7 +109,15 @@ const AddRecordModal = ({ isOpen, onClose }) => {
     
     addTransaction(formData);
     onClose();
-    setFormData({ type: 'expense', amount: '', accountName: '', targetAccount: '', category: 'Geral', description: '' });
+    setFormData({ 
+      type: 'expense', 
+      amount: '', 
+      accountName: '', 
+      targetAccount: '', 
+      category: 'Geral', 
+      description: '',
+      date: new Date().toISOString().split('T')[0]
+    });
   };
 
   return (
@@ -153,7 +163,9 @@ const AddRecordModal = ({ isOpen, onClose }) => {
               onChange={(e) => setFormData({...formData, amount: e.target.value})}
               required
             />
-            {formData.type === 'income' && formData.amount > 0 && formData.accountName === 'ABDALA' && (
+            {((formData.type === 'income' && formData.accountName === 'ABDALA') || 
+               (formData.type === 'transfer' && formData.targetAccount === 'ABDALA')) && 
+               formData.amount > 0 && (
               <p className="helper-text tithe-preview">
                 Dedução de 10% (R${(formData.amount * 0.1).toFixed(2)}) será destinada à conta DOAÇÃO.
               </p>
@@ -205,6 +217,16 @@ const AddRecordModal = ({ isOpen, onClose }) => {
               <option value="Investimentos">Investimentos</option>
               <option value="Transferência">Transferência</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>Data</label>
+            <input 
+              type="date" 
+              value={formData.date}
+              onChange={(e) => setFormData({...formData, date: e.target.value})}
+              required
+            />
           </div>
 
           <div className="form-group">

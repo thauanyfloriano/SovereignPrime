@@ -69,23 +69,51 @@ export const AppProvider = ({ children }) => {
 
   const addTransaction = async (transaction) => {
     const amount = parseFloat(transaction.amount);
-    const date = new Date().toISOString();
-    
-    let updatedAccounts = [...accounts];
+    const date = transaction.date ? new Date(transaction.date).toISOString() : new Date().toISOString();
     let txsToInsert = [];
 
-    if (transaction.type === 'income' && transaction.accountName === 'ABDALA' && transaction.category !== 'Transferência') {
-      const titheAmount = amount * 0.10;
+    // TITHE LOGIC: Apply to Income into ABDALA OR Transfer into ABDALA
+    const isTargetingAbdala = transaction.accountName === 'ABDALA' || transaction.targetAccount === 'ABDALA';
+    const shouldTithe = isTargetingAbdala && (transaction.type === 'income' || transaction.type === 'transfer');
+
+    if (shouldTithe) {
+      const titheAmount = amount * 0.1;
       const netAmount = amount - titheAmount;
 
-      // 1. Primary Income (Net)
-      txsToInsert.push({
-        ...transaction,
-        amount: netAmount,
-        date
-      });
+      if (transaction.type === 'income') {
+        // Normal Income with Tithe
+        txsToInsert.push({
+          ...transaction,
+          amount: amount,
+          date
+        });
+      } else {
+        // Transfer into ABDALA with Tithe
+        const originAccount = transaction.accountName;
+        // 1. Transfer Out from Origin
+        txsToInsert.push({
+          type: 'expense',
+          amount: amount,
+          account_name: originAccount,
+          category: 'Transferência',
+          description: `Transferência para ABDALA: ${transaction.description || ''}`,
+          date
+        });
+        // 2. Transfer In to ABDALA (Full amount initially)
+        txsToInsert.push({
+          type: 'income',
+          amount: amount,
+          account_name: 'ABDALA',
+          category: 'Transferência',
+          description: `Transferência de ${originAccount}: ${transaction.description || ''}`,
+          date
+        });
+        
+        await supabase.rpc('increment_balance', { account_name: originAccount, amount: -amount });
+      }
 
-      // 2. Tithe Deduction Record
+      // Shared Tithe Accounting for both Income and Transfer
+      // 1. Deduction Record from ABDALA
       txsToInsert.push({
         type: 'expense',
         amount: titheAmount,
@@ -95,7 +123,7 @@ export const AppProvider = ({ children }) => {
         date
       });
 
-      // 3. Donation Income Record
+      // 2. Income Record in DOAÇÃO
       txsToInsert.push({
         type: 'income',
         amount: titheAmount,
@@ -105,14 +133,14 @@ export const AppProvider = ({ children }) => {
         date
       });
 
-      // Update Local Balances
+      // Update Balances
+      // For both Income and Transfer into ABDALA, the account gains the Net Amount (Total - 10%)
       await supabase.rpc('increment_balance', { account_name: 'ABDALA', amount: netAmount });
       await supabase.rpc('increment_balance', { account_name: 'DOAÇÃO', amount: titheAmount });
 
     } else if (transaction.type === 'transfer') {
       const targetAccountName = transaction.targetAccount;
       
-      // Transfer Out
       txsToInsert.push({
         type: 'expense',
         amount: amount,
@@ -122,7 +150,6 @@ export const AppProvider = ({ children }) => {
         date
       });
       
-      // Transfer In
       txsToInsert.push({
         type: 'income',
         amount: amount,
@@ -136,7 +163,6 @@ export const AppProvider = ({ children }) => {
       await supabase.rpc('increment_balance', { account_name: targetAccountName, amount: amount });
 
     } else {
-      // Normal transaction
       txsToInsert.push({
         ...transaction,
         amount: amount,
@@ -147,7 +173,6 @@ export const AppProvider = ({ children }) => {
       await supabase.rpc('increment_balance', { account_name: transaction.accountName, amount: balanceChange });
     }
 
-    // Insert all transactions
     const formattedTxs = txsToInsert.map(tx => ({
       type: tx.type,
       amount: tx.amount,
@@ -178,14 +203,34 @@ export const AppProvider = ({ children }) => {
     if (!txToDelete) return;
 
     const amount = parseFloat(txToDelete.amount);
+    
+    // If it's a transfer, we might want to find and delete the other side too
+    // For now, let's at least ensure the balance of the current account is reverted
     const balanceChange = txToDelete.type === 'income' ? -amount : amount;
-
     await supabase.rpc('increment_balance', { account_name: txToDelete.account_name, amount: balanceChange });
+    
+    // Handle linked transfer deletion if description contains the pattern
+    if (txToDelete.category === 'Transferência') {
+      // Find the "matching" transaction: same amount, same date (approx), opposite type
+      const otherSide = transactions.find(tx => 
+        tx.id !== id && 
+        parseFloat(tx.amount) === amount && 
+        tx.type !== txToDelete.type &&
+        tx.category === 'Transferência' &&
+        Math.abs(new Date(tx.date) - new Date(txToDelete.date)) < 10000 // within 10 seconds
+      );
+
+      if (otherSide) {
+        const otherBalanceChange = otherSide.type === 'income' ? -amount : amount;
+        await supabase.rpc('increment_balance', { account_name: otherSide.account_name, amount: otherBalanceChange });
+        await supabase.from('transactions').delete().eq('id', otherSide.id);
+      }
+    }
+
     await supabase.from('transactions').delete().eq('id', id);
 
-    setTransactions(prev => prev.filter(tx => tx.id !== id));
-    const { data: refreshedAccounts } = await supabase.from('accounts').select('*').order('name');
-    if (refreshedAccounts) setAccounts(refreshedAccounts);
+    // Refresh state
+    await fetchData();
   };
 
   const deleteAccount = async (id) => {
@@ -205,7 +250,6 @@ export const AppProvider = ({ children }) => {
   };
 
   const totalLiquidity = accounts
-    .filter(acc => acc.name === 'ABDALA')
     .reduce((acc, curr) => acc + (parseFloat(curr.balance) || 0), 0);
   
   const totalIncome = transactions
