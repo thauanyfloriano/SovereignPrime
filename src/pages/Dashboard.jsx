@@ -44,7 +44,7 @@ const spendData = [
 ];
 
 const Dashboard = () => {
-  const { totalLiquidity, totalReceivable, totalIncome, totalExpenses, transactions, accounts, loading } = useApp();
+  const { totalLiquidity, totalReceivable, totalIncome, totalExpenses, transactions, accounts, loading, currentUser } = useApp();
 
   if (loading) {
     return (
@@ -68,7 +68,13 @@ const Dashboard = () => {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="navy-hero">
-          <p className="label">TOTAL LIQUIDITY</p>
+          <div className="hero-header">
+            <p className="label">TOTAL LIQUIDITY</p>
+            <div className="user-greeting">
+              <span className="greeting-text">Welcome,</span>
+              <span className="user-name">{currentUser}</span>
+            </div>
+          </div>
           <h1 className="amount outfit">{formatCurrency(totalLiquidity)}</h1>
           <div className="hero-stats">
             <div className="stat-pill">

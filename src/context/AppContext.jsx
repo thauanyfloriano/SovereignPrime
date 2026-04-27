@@ -12,10 +12,19 @@ export const AppProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(() => {
+    return localStorage.getItem('sovereign_user') || null;
+  });
+
 
   useEffect(() => {
     localStorage.setItem('sovereign_auth', isAuthenticated);
-  }, [isAuthenticated]);
+    if (currentUser) {
+      localStorage.setItem('sovereign_user', currentUser);
+    } else {
+      localStorage.removeItem('sovereign_user');
+    }
+  }, [isAuthenticated, currentUser]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +56,12 @@ export const AppProvider = ({ children }) => {
   const login = (username, password) => {
     if (username === 'ABDALA' && password === 'Abdala@123') {
       setIsAuthenticated(true);
+      setCurrentUser('ABDALA');
+      return true;
+    }
+    if (username === 'jef' && password === 'Jef@123') {
+      setIsAuthenticated(true);
+      setCurrentUser('jef');
       return true;
     }
     return false;
@@ -54,6 +69,7 @@ export const AppProvider = ({ children }) => {
 
   const logout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
   };
 
   const addAccount = async (account) => {
@@ -73,8 +89,11 @@ export const AppProvider = ({ children }) => {
     let txsToInsert = [];
 
     // TITHE LOGIC: Apply to Income into ABDALA OR Transfer into ABDALA
+    // EXCEPTION: User 'jef' is exempt from the 10% rule
     const isTargetingAbdala = transaction.accountName === 'ABDALA' || transaction.targetAccount === 'ABDALA';
-    const shouldTithe = isTargetingAbdala && (transaction.type === 'income' || transaction.type === 'transfer');
+    const shouldTithe = isTargetingAbdala && 
+                       (transaction.type === 'income' || transaction.type === 'transfer') && 
+                       currentUser !== 'jef';
 
     if (shouldTithe) {
       const titheAmount = amount * 0.1;
@@ -267,6 +286,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{ 
       isAuthenticated,
+      currentUser,
       login,
       logout,
       accounts, 

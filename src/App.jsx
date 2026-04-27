@@ -21,7 +21,7 @@ import './App.css';
 import { useApp } from './context/AppContext';
 
 const Sidebar = () => {
-  const { logout } = useApp();
+  const { logout, currentUser } = useApp();
   return (
     <aside className="sidebar">
       <div className="logo-container">
@@ -46,9 +46,9 @@ const Sidebar = () => {
           <span>Sair</span>
         </button>
         <div className="user-profile">
-          <div className="avatar">A</div>
+          <div className="avatar">{currentUser ? currentUser[0] : 'A'}</div>
           <div className="user-info">
-            <p className="user-name">ABDALA</p>
+            <p className="user-name">{currentUser || 'ABDALA'}</p>
             <p className="user-role">Sovereign Prime</p>
           </div>
         </div>
@@ -90,7 +90,7 @@ const Header = ({ onAddRecord }) => {
 };
 
 const AddRecordModal = ({ isOpen, onClose }) => {
-  const { accounts, addTransaction } = useApp();
+  const { accounts, addTransaction, currentUser } = useApp();
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
@@ -165,7 +165,7 @@ const AddRecordModal = ({ isOpen, onClose }) => {
             />
             {((formData.type === 'income' && formData.accountName === 'ABDALA') || 
                (formData.type === 'transfer' && formData.targetAccount === 'ABDALA')) && 
-               formData.amount > 0 && (
+               formData.amount > 0 && currentUser !== 'jef' && (
               <p className="helper-text tithe-preview">
                 Dedução de 10% (R${(formData.amount * 0.1).toFixed(2)}) será destinada à conta DOAÇÃO.
               </p>
