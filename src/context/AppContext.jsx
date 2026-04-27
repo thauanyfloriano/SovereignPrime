@@ -232,8 +232,8 @@ export const AppProvider = ({ children }) => {
     const { data: newTxs } = await supabase.from('transactions').insert(formattedTxs).select();
     
     // Refresh all data to ensure consistency
-    const { data: refreshedAccounts } = await supabase.from('accounts').select('*').order('name');
-    const { data: refreshedTxs } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+    const { data: refreshedAccounts } = await supabase.from('accounts').select('*').eq('owner', currentUser).order('name');
+    const { data: refreshedTxs } = await supabase.from('transactions').select('*').eq('owner', currentUser).order('date', { ascending: false });
     
     if (refreshedAccounts) setAccounts(refreshedAccounts);
     if (refreshedTxs) {
@@ -278,7 +278,17 @@ export const AppProvider = ({ children }) => {
     await supabase.from('transactions').delete().eq('id', id);
 
     // Refresh state
-    await fetchData();
+    const { data: refreshedAccounts } = await supabase.from('accounts').select('*').eq('owner', currentUser).order('name');
+    const { data: refreshedTxs } = await supabase.from('transactions').select('*').eq('owner', currentUser).order('date', { ascending: false });
+    
+    if (refreshedAccounts) setAccounts(refreshedAccounts);
+    if (refreshedTxs) {
+      const mappedTxs = refreshedTxs.map(tx => ({
+        ...tx,
+        accountName: tx.account_name
+      }));
+      setTransactions(mappedTxs);
+    }
   };
 
   const deleteAccount = async (id) => {
