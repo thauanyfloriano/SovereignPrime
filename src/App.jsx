@@ -25,7 +25,7 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="logo-container">
-        <div className="logo-icon">G</div>
+        <div className="logo-icon">A</div>
         <h1 className="outfit">Sovereign</h1>
       </div>
 
@@ -48,7 +48,7 @@ const Sidebar = () => {
         <div className="user-profile">
           <div className="avatar">A</div>
           <div className="user-info">
-            <p className="user-name">Abdala</p>
+            <p className="user-name">ABDALA</p>
             <p className="user-role">Sovereign Prime</p>
           </div>
         </div>
@@ -57,28 +57,37 @@ const Sidebar = () => {
   );
 };
 
-const Header = ({ onAddRecord }) => (
-  <header className="top-bar">
-    <div className="search-container">
-      <Search size={18} className="search-icon" />
-      <input type="text" placeholder="Search wealth, assets, or data..." />
-    </div>
-    
-    <div className="actions">
-      <button className="icon-btn">
-        <Bell size={20} />
-        <div className="badge"></div>
-      </button>
-      <button className="icon-btn">
-        <Settings size={20} />
-      </button>
-      <button className="add-record-btn" onClick={onAddRecord}>
-        <Plus size={18} />
-        <span>Add Record</span>
-      </button>
-    </div>
-  </header>
-);
+const Header = ({ onAddRecord }) => {
+  const { searchQuery, setSearchQuery } = useApp();
+  
+  return (
+    <header className="top-bar">
+      <div className="search-container">
+        <Search size={18} className="search-icon" />
+        <input 
+          type="text" 
+          placeholder="Search wealth, assets, or data..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      
+      <div className="actions">
+        <button className="icon-btn">
+          <Bell size={20} />
+          <div className="badge"></div>
+        </button>
+        <button className="icon-btn">
+          <Settings size={20} />
+        </button>
+        <button className="add-record-btn" onClick={onAddRecord}>
+          <Plus size={18} />
+          <span>Add Record</span>
+        </button>
+      </div>
+    </header>
+  );
+};
 
 const AddRecordModal = ({ isOpen, onClose }) => {
   const { accounts, addTransaction } = useApp();
@@ -98,7 +107,7 @@ const AddRecordModal = ({ isOpen, onClose }) => {
     
     addTransaction(formData);
     onClose();
-    setFormData({ type: 'expense', amount: '', accountName: '', category: 'Geral', description: '' });
+    setFormData({ type: 'expense', amount: '', accountName: '', targetAccount: '', category: 'Geral', description: '' });
   };
 
   return (
@@ -125,6 +134,13 @@ const AddRecordModal = ({ isOpen, onClose }) => {
             >
               Saída
             </button>
+            <button 
+              type="button"
+              className={`toggle-btn transfer ${formData.type === 'transfer' ? 'active' : ''}`}
+              onClick={() => setFormData({...formData, type: 'transfer'})}
+            >
+              Transferência
+            </button>
           </div>
 
           <div className="form-group">
@@ -137,10 +153,15 @@ const AddRecordModal = ({ isOpen, onClose }) => {
               onChange={(e) => setFormData({...formData, amount: e.target.value})}
               required
             />
+            {formData.type === 'income' && formData.amount > 0 && formData.accountName === 'ABDALA' && (
+              <p className="helper-text tithe-preview">
+                Dedução de 10% (R${(formData.amount * 0.1).toFixed(2)}) será destinada à conta DOAÇÃO.
+              </p>
+            )}
           </div>
 
           <div className="form-group">
-            <label>Conta de Origem/Destino</label>
+            <label>{formData.type === 'transfer' ? 'Conta de Origem' : 'Conta de Origem/Destino'}</label>
             <select 
               value={formData.accountName} 
               onChange={(e) => setFormData({...formData, accountName: e.target.value})}
@@ -152,6 +173,22 @@ const AddRecordModal = ({ isOpen, onClose }) => {
               ))}
             </select>
           </div>
+
+          {formData.type === 'transfer' && (
+            <div className="form-group">
+              <label>Conta de Destino</label>
+              <select 
+                value={formData.targetAccount} 
+                onChange={(e) => setFormData({...formData, targetAccount: e.target.value})}
+                required
+              >
+                <option value="">Selecione o destino</option>
+                {accounts.filter(acc => acc.name !== formData.accountName).map(acc => (
+                  <option key={acc.id} value={acc.name}>{acc.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="form-group">
             <label>Categoria</label>
@@ -165,6 +202,8 @@ const AddRecordModal = ({ isOpen, onClose }) => {
               <option value="Transporte">Transporte</option>
               <option value="Lazer">Lazer</option>
               <option value="Negócios">Negócios</option>
+              <option value="Investimentos">Investimentos</option>
+              <option value="Transferência">Transferência</option>
             </select>
           </div>
 

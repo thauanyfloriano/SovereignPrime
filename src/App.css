@@ -246,6 +246,25 @@
   color: var(--primary-navy);
 }
 
+.helper-text {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  color: var(--slate-400);
+}
+
+.tithe-preview {
+  color: #10b981;
+  font-weight: 500;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.toggle-btn.transfer.active {
+  background: var(--primary-navy);
+  color: white;
+}
+
 .modal-form {
   display: flex;
   flex-direction: column;
@@ -326,5 +345,29 @@
 .submit-btn:disabled {
   background: #cbd5e1;
   cursor: not-allowed;
+}
+
+/* Loading State Global */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+  color: var(--text-secondary);
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f1f5f9;
+  border-top-color: var(--primary-navy);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 

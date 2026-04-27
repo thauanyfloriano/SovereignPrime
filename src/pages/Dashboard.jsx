@@ -44,7 +44,18 @@ const spendData = [
 ];
 
 const Dashboard = () => {
-  const { totalLiquidity, totalIncome, totalExpenses, transactions, accounts } = useApp();
+  const { totalLiquidity, totalReceivable, totalIncome, totalExpenses, transactions, accounts, loading } = useApp();
+
+  if (loading) {
+    return (
+      <div className="dashboard-grid">
+        <div className="loading-container">
+          <div className="loader"></div>
+          <p>Lendo dados do Sovereign Ledger...</p>
+        </div>
+      </div>
+    );
+  }
 
   const allocationData = [
     { name: 'Business Operations', value: accounts.filter(a => a.name.includes('Business')).length || 1, color: '#021d49' },
@@ -109,6 +120,17 @@ const Dashboard = () => {
             <p className="label">EXPENSES</p>
             <h3>{formatCurrency(totalExpenses)}</h3>
             <p className="trend neutral">Lifetime spend</p>
+          </div>
+        </div>
+
+        <div className="premium-card mini-stat">
+          <div className="stat-icon receivable">
+            <Activity size={18} />
+          </div>
+          <div className="stat-content">
+            <p className="label">TOTAL A RECEBER</p>
+            <h3>{formatCurrency(totalReceivable)}</h3>
+            <p className="trend highlight">Client capital</p>
           </div>
         </div>
 

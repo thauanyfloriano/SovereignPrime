@@ -215,93 +215,177 @@
   color: var(--text-secondary);
 }
 
-.institutions-list {
-  padding: 8px 32px;
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
 }
 
-.institution-row {
+.account-premium-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 190px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.account-premium-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-navy);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.account-premium-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-navy);
+}
+
+.account-premium-card:hover::before {
+  opacity: 1;
+}
+
+.card-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f5f9;
+  align-items: flex-start;
 }
 
-.institution-row:last-child {
-  border-bottom: none;
-}
-
-.inst-info {
+.bank-info {
   display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 20px;
 }
 
-.inst-icon {
-  width: 48px;
-  height: 48px;
+.bank-logo {
+  width: 36px;
+  height: 36px;
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-blue);
+  color: var(--primary-navy);
 }
 
-.inst-text h3 {
-  font-size: 14px;
-  font-weight: 600;
+.bank-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 2px;
 }
 
-.inst-text p {
-  font-size: 12px;
+.account-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-navy);
+}
+
+.action-dot-btn {
   color: var(--text-secondary);
+  opacity: 0.4;
+  transition: all 0.2s;
+  padding: 6px;
+  border-radius: 6px;
 }
 
-.inst-actions {
+.action-dot-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  opacity: 1;
+}
+
+.card-mid {
+  margin: 16px 0;
+}
+
+.account-number-display {
   display: flex;
-  align-items: center;
-  gap: 40px;
+  gap: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: var(--text-secondary);
+  opacity: 0.5;
 }
 
-.inst-balance {
-  text-align: right;
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
-.inst-balance .label {
+.balance-info .label {
   font-size: 9px;
   font-weight: 700;
   color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
-.inst-balance .value {
+.balance-info .value {
   font-size: 20px;
   font-weight: 700;
   color: var(--primary-navy);
 }
 
-.btn-group {
-  display: flex;
-  gap: 12px;
-}
-
-.icon-circle {
+.statement-link {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: var(--primary-navy);
   transition: all 0.2s;
 }
 
-.icon-circle:hover {
+.account-premium-card:hover .statement-link {
   background: var(--primary-navy);
   color: white;
+  border-color: var(--primary-navy);
+}
+
+.add-account-card {
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 190px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.add-account-card:hover {
+  border-color: var(--primary-navy);
+  background: #f8fafc;
+}
+
+.add-account-card p {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .empty-state {

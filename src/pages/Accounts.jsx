@@ -138,41 +138,57 @@ const CreditCard = ({ type, brand, lastFour, balance, limit, color }) => (
   </div>
 );
 
-const InstitutionItem = ({ name, bank, balance, onClick }) => (
-  <div className="institution-row" onClick={onClick} style={{ cursor: 'pointer' }}>
-    <div className="inst-info">
-      <div className="inst-icon">
-        <Landmark size={20} />
+const AccountCard = ({ name, bank, balance, onClick, onDelete }) => (
+  <div className="account-premium-card" onClick={onClick}>
+    <div className="card-top">
+      <div className="bank-info">
+        <div className="bank-logo">
+          <Building2 size={18} />
+        </div>
+        <div>
+          <p className="bank-name">{bank}</p>
+          <h3 className="account-title">{name}</h3>
+        </div>
       </div>
-      <div className="inst-text">
-        <h3>{name}</h3>
-        <p>{bank} ••••0000</p>
+      <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+        <button className="action-dot-btn" onClick={onDelete}>
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </div>
+
+    <div className="card-mid">
+      <div className="account-number-display">
+        <span>****</span>
+        <span>****</span>
+        <span>****</span>
+        <span>0000</span>
       </div>
     </div>
     
-    <div className="inst-actions">
-      <div className="inst-balance">
-        <p className="label">AVAILABLE</p>
+    <div className="card-bottom">
+      <div className="balance-info">
+        <p className="label">AVAILABLE BALANCE</p>
         <p className="value outfit">R${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
       </div>
-      <div className="btn-group">
-        <button className="icon-circle">
-          <History size={16} />
-        </button>
-        <button className="icon-circle">
-          <ArrowRight size={16} />
-        </button>
+      <div className="statement-link">
+        <History size={16} />
       </div>
     </div>
   </div>
 );
 
 const Accounts = () => {
-  const { accounts, addAccount, totalLiquidity, transactions, deleteTransaction } = useApp();
+  const { accounts, addAccount, totalLiquidity, transactions, deleteTransaction, deleteAccount, searchQuery, loading } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingExtrato, setViewingExtrato] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, id: null });
   const [newAccount, setNewAccount] = useState({ name: '', bank: '', balance: '' });
+
+  const filteredAccounts = accounts.filter(acc => 
+    acc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    acc.bank.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleAddAccount = (e) => {
     e.preventDefault();
@@ -185,6 +201,17 @@ const Accounts = () => {
     setNewAccount({ name: '', bank: '', balance: '' });
     setIsModalOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="accounts-page">
+        <div className="loading-container">
+          <div className="loader"></div>
+          <p>Sincronizando com Sovereign Trust...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="accounts-page">
@@ -215,22 +242,18 @@ const Accounts = () => {
         </div>
         
         <div className="cards-grid">
-          <CreditCard 
-            type="INFINITE PRIVILEGE"
-            brand="Sovereign Prime"
-            lastFour="0000"
-            balance={0.00}
-            limit={0}
-            color="navy"
-          />
-          <CreditCard 
-            type="BUSINESS BLACK"
-            brand="Founders Corporate"
-            lastFour="0000"
-            balance={0.00}
-            limit={0}
-            color="dark"
-          />
+          {[
+            { type: "INFINITE PRIVILEGE", brand: "Sovereign Prime", lastFour: "0000", balance: 0, limit: 0, color: "navy" },
+            { type: "BUSINESS BLACK", brand: "Founders Corporate", lastFour: "0000", balance: 0, limit: 0, color: "dark" }
+          ].filter(card => 
+            card.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            card.type.toLowerCase().includes(searchQuery.toLowerCase())
+          ).map((card, idx) => (
+            <CreditCard 
+              key={idx}
+              {...card}
+            />
+          ))}
           <button className="add-card-placeholder">
             <div className="plus-box">
               <Plus size={24} />
@@ -249,20 +272,27 @@ const Accounts = () => {
           </button>
         </div>
         
-        <div className="premium-card institutions-list">
-          {accounts.length > 0 ? (
-            accounts.map((acc) => (
-              <InstitutionItem 
+        <div className="accounts-grid">
+          {filteredAccounts.length > 0 ? (
+            filteredAccounts.map((acc) => (
+              <AccountCard 
                 key={acc.id}
                 name={acc.name}
                 bank={acc.bank}
                 balance={acc.balance}
                 onClick={() => setViewingExtrato(acc)}
+                onDelete={() => deleteAccount(acc.id)}
               />
             ))
           ) : (
-            <div className="empty-state">No connected institutions.</div>
+            <div className="empty-state">No matching accounts found.</div>
           )}
+          <button className="add-account-card" onClick={() => setIsModalOpen(true)}>
+            <div className="plus-box">
+              <Plus size={24} />
+            </div>
+            <p>Add New Account</p>
+          </button>
         </div>
       </section>
 
